@@ -50,10 +50,9 @@ def main():
                 running =False
             elif e.type == pygame.MOUSEBUTTONDOWN:
                 location=pygame.mouse.get_pos()
-                row = location[0]//Square_size
-                column = location[1]//  Square_size
-                
-                if(squareSelected ==(column,row)):
+                column = location[0]//Square_size
+                row = location[1]//  Square_size
+                if(squareSelected ==(row,column)):
                     squareSelected=()
                     playerClicks=[]
                 else:
