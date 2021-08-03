@@ -12,6 +12,16 @@ class GameState():
             ]
         self.whiteToMove =True
         self.moves =[]
+    def getValidityOfFirstClick(self,p):
+        if(self.board[p[0]][p[1]]=="xx"):
+            return False
+        if(self.whiteToMove):
+            if(self.board[p[0]][p[1]][0]!="w"):
+                return False
+        else:
+            if(self.board[p[0]][p[1]][0]!="b"):
+                return False
+        return True
     def makeMove(self,move):
         if(self.board[move.startRow][move.startColumn]=="xx"):
             print("Invalid move")

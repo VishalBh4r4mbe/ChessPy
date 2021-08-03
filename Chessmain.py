@@ -38,7 +38,7 @@ def main():
     screen  = pygame.display.set_mode((WIDTH,HEIGHT))
     clock  = pygame.time.Clock()
     screen.fill(pygame.Color("white"))
-    game_state = GameState()
+    gameState = GameState()
     loadIMAGES()
     running =True
     #to track
@@ -50,21 +50,31 @@ def main():
                 running =False
             elif e.type == pygame.MOUSEBUTTONDOWN:
                 location=pygame.mouse.get_pos()
+                ## get row and column
                 column = location[0]//Square_size
                 row = location[1]//  Square_size
+                ##if the same square is clicked twice
                 if(squareSelected ==(row,column)):
                     squareSelected=()
                     playerClicks=[]
+                #push the sqaure to the list
                 else:
                     squareSelected = (row,column)
                     playerClicks.append(squareSelected)
+                #If a blank square is selected  or other colored piece is selected
+                if (len(playerClicks)==1):
+                    if(not gameState.getValidityOfFirstClick(playerClicks[0])):
+                        squareSelected=()
+                        playerClicks=[]
+                        print("Invalid Selection")
+                #Checked if the move is a valid move or not 
                 if(len(playerClicks)==2):
-                    move = ChessEngine.Move(playerClicks[0],playerClicks[1],game_state.board);
+                    move = ChessEngine.Move(playerClicks[0],playerClicks[1],gameState.board);
                     print(move.preOutput())
-                    game_state.makeMove(move)
+                    gameState.makeMove(move)
                     squareSelected=()
                     playerClicks=[]
-        drawGameState(screen,game_state)
+        drawGameState(screen,gameState)
         pygame.display.update()
         clock.tick(MAX_FPS)
         pygame.display.flip()
