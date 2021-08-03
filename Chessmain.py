@@ -38,7 +38,7 @@ def main():
     screen  = pygame.display.set_mode((WIDTH,HEIGHT))
     clock  = pygame.time.Clock()
     screen.fill(pygame.Color("white"))
-    game_state = GameState();
+    game_state = GameState()
     loadIMAGES()
     running =True
     #to track
