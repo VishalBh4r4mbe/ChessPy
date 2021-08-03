@@ -1,7 +1,7 @@
 import pygame as p
 p.init()
 screen=p.display.set_mode((800,600))
-p.display.set_caption("Behenchod")
+p.display.set_caption("Chess")
 running =True
 
 while running :
