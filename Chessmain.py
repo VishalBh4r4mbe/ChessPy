@@ -9,7 +9,6 @@ Square_size  = WIDTH//DIM
 MAX_FPS = 30
 IMAGES = {}
 
-
 def loadIMAGES():
     pieces = ["bR","bN","bB","bQ","bK","wR","wN","wB","wK","bp","wp","wQ"]
     
@@ -32,6 +31,9 @@ def drawPieces(screen,board):
              piece  = board[j][i]
              if piece !="xx":
                  screen.blit(IMAGES[piece],pygame.Rect(i*Square_size,j*Square_size,i,j))
+def colorCell(screen,y,x,color):
+    pygame.draw.rect(screen,color,pygame.Rect(x*Square_size,y*Square_size,Square_size,Square_size))
+
 
 def main():
     pygame.init()
@@ -39,6 +41,8 @@ def main():
     clock  = pygame.time.Clock()
     screen.fill(pygame.Color("white"))
     gameState = GameState()
+    moveMade =False
+    validMoves = gameState.getAllPossibleMoves()
     loadIMAGES()
     running =True
     #to track
@@ -47,7 +51,13 @@ def main():
     while running:
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
+                print("exiting")
                 running =False
+            if e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_z:
+                    gameState.UndoLastMove() 
+                    moveMade=True
+    
             elif e.type == pygame.MOUSEBUTTONDOWN:
                 location=pygame.mouse.get_pos()
                 ## get row and column
@@ -61,19 +71,31 @@ def main():
                 else:
                     squareSelected = (row,column)
                     playerClicks.append(squareSelected)
-                #If a blank square is selected  or other colored piece is selected
+
+
+                '''if a blank square is selected  or other colored piece is selected'''
+                
                 if (len(playerClicks)==1):
                     if(not gameState.getValidityOfFirstClick(playerClicks[0])):
                         squareSelected=()
                         playerClicks=[]
-                        print("Invalid Selection")
+                        print("Invalid Selection")                        
+                        
                 #Checked if the move is a valid move or not 
                 if(len(playerClicks)==2):
                     move = ChessEngine.Move(playerClicks[0],playerClicks[1],gameState.board);
-                    print(move.preOutput())
-                    gameState.makeMove(move)
+                    if move in validMoves:
+                        print(move.preOutput())
+                        gameState.makeMove(move)
+                        moveMade = True
+                    else :
+                        print("Not a valid move")
                     squareSelected=()
                     playerClicks=[]
+        if moveMade:
+            validMoves = gameState.getAllPossibleMoves()
+            moveMade = False
+        
         drawGameState(screen,gameState)
         pygame.display.update()
         clock.tick(MAX_FPS)

@@ -12,6 +12,8 @@ class GameState():
             ]
         self.whiteToMove =True
         self.moves =[]
+    
+    '''Checks for validity of the first click'''
     def getValidityOfFirstClick(self,p):
         if(self.board[p[0]][p[1]]=="xx"):
             return False
@@ -22,6 +24,8 @@ class GameState():
             if(self.board[p[0]][p[1]][0]!="b"):
                 return False
         return True
+
+    '''Executes a move that has been passed in'''
     def makeMove(self,move):
         if(self.board[move.startRow][move.startColumn]=="xx"):
             print("Invalid move")
@@ -40,6 +44,47 @@ class GameState():
         self.board[move.endRow][move.endColumn]=move.pieceMoved
         self.moves.append(move)
         self.whiteToMove= not self.whiteToMove
+    
+    def UndoLastMove(self):
+        if(len(self.moves)!=0):
+            move = self.moves.pop()
+            self.board[move.startRow][move.startColumn]=move.pieceMoved
+            self.board[move.endRow][move.endColumn]=move.pieceCaptured
+            self.whiteToMove = not self.whiteToMove
+    '''Defining all moves'''
+    def getValidRookMoves(self):
+        pass
+    def getValidKnightMoves(self):
+        pass
+    def getValidBishopMoves(self):
+        pass
+    def getValidQueenMoves(self):
+        pass
+    def getValidKingMoves(self):
+        pass
+    def getValidPawnMoves(self):
+        pass
+    def getAllPossibleMoves(self):
+        moves = [Move((6,4),(4,4),self.board)]
+        for row in range (0,8):
+            for column in range(0,8):
+                curPeice = self.board[row][column]
+                if(curPeice[0]=="b" and not self.whiteToMove) and (curPeice[0]=="w" and self.whiteToMove):
+                    if curPeice[1]=="R":
+                        self.getValidRookMoves()
+                    elif curPeice[1]=="N":
+                        self.getValidKnightMoves()
+                    elif curPeice[1]=="B":
+                        self.getValidBishopMoves()
+                    elif curPeice[1]=="Q":
+                        self.getValidQueenMoves()
+                    elif curPeice[1]=="K":
+                        self.getValidKingMoves()
+                    elif curPeice[1]=="P":
+                        self.getValidPawnMoves() 
+        return moves                    
+    
+    
 
 class Move():
     rankToRow= {"1":7 ,"2":6 ,"3":5 ,"4":4 ,"5":3 ,"6":2,"7":1,"8":0}
@@ -52,11 +97,12 @@ class Move():
         self.startColumn = startSquare[1]
         self.endColumn  = endSquare[1]
         self.pieceMoved = board[self.startRow][self.startColumn] 
-        self.pieceCapture =board[self.endRow][self.endColumn]
-    
-    
+        self.pieceCaptured =board[self.endRow][self.endColumn]
+        self.moveID = self.startRow*4000+self.startColumn*400+self.endRow*40+self.endColumn*4
+
+    def __eq__(self,other):
+        return isinstance(other,Move) and self.moveID==other.moveID  
     def preOutput(self):
         return self.getRankFile(self.startRow,self.startColumn)+self.getRankFile(self.endRow,self.endColumn)
     def getRankFile(self,row,column):
         return self.columnToFile[column]+self.rowToRank[row]
-    
