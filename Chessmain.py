@@ -79,11 +79,11 @@ def main():
                     if(not gameState.getValidityOfFirstClick(playerClicks[0])):
                         squareSelected=()
                         playerClicks=[]
-                        print("Invalid Selection")                        
+                        print("Select a peice or a peice of your color")                        
                         
                 #Checked if the move is a valid move or not 
                 if(len(playerClicks)==2):
-                    move = ChessEngine.Move(playerClicks[0],playerClicks[1],gameState.board);
+                    move = ChessEngine.Move(playerClicks[0],playerClicks[1],gameState.board)
                     if move in validMoves:
                         print(move.preOutput())
                         gameState.makeMove(move)
