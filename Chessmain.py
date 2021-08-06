@@ -93,7 +93,7 @@ def main():
                     squareSelected=()
                     playerClicks=[]
         if moveMade:
-            validMoves = gameState.getAllPossibleMoves()
+            validMoves = gameState.ValidMoveFinder()
             moveMade = False
         
         drawGameState(screen,gameState)

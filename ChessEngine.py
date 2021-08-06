@@ -12,8 +12,16 @@ class GameState():
             ]
         self.whiteToMove =True
         self.moves =[]
+        '''Keeping Track of the king to check for Checks'''
+        self.whiteKing = (7,4)
+        self.blackKing = (0,4)
+        self.currentlyInCheck = False
+        self.pins= []
+        self.checks = []    
     
-    '''Checks for validity of the first click'''
+    '''
+    Checks for validity of the first click
+    '''
     def getValidityOfFirstClick(self,p):
         if(self.board[p[0]][p[1]]=="xx"):
             return False
@@ -27,33 +35,87 @@ class GameState():
 
     '''Executes a move that has been passed in'''
     def makeMove(self,move):
-        if(self.board[move.startRow][move.startColumn]=="xx"):
-            print("Invalid move")
-            return
-        if(self.board[move.endRow][move.endColumn][0]==self.board[move.startRow][move.startColumn][0]):
-            print("Invalid move - same colour piece")
-            return
-        if self.whiteToMove and self.board[move.startRow][move.startColumn][0]!="w":
-            print("Invalid move - white has to play")
-            return
-        if not self.whiteToMove:
-            if(self.board[move.startRow][move.startColumn][0]!="b"):
-                print("Invalid move - black has to play")
-                return
+        '''These were dealt with in Valid move generation and Other Validity Checker for the first click'''
+        # if(self.board[move.endRow][move.endColumn][0]==self.board[move.startRow][move.startColumn][0]):
+        #     print("Invalid move - same colour piece")
+        #     return
+        # if self.whiteToMove and self.board[move.startRow][move.startColumn][0]!="w":
+        #     print("Invalid move - white has to play")
+        #     return
+        # if not self.whiteToMove:
+        #     if(self.board[move.startRow][move.startColumn][0]!="b"):
+        #         print("Invalid move - black has to play")
+        #         return
+        if(self.board[move.startRow][move.startColumn][1]=="wK"):
+            self.whiteKing = (move.endRow,move.endColumn)
+        if(self.board[move.startRow][move.startColumn][1]=="bK"):
+            self.blackKing = (move.endRow,move.endColumn)
+
         self.board[move.startRow][move.startColumn]="xx"
         self.board[move.endRow][move.endColumn]=move.pieceMoved
         self.moves.append(move)
         self.whiteToMove= not self.whiteToMove
     
     def UndoLastMove(self):
+        '''Removes the last move and changes the board accordingly'''
         if(len(self.moves)!=0):
             move = self.moves.pop()
             self.board[move.startRow][move.startColumn]=move.pieceMoved
             self.board[move.endRow][move.endColumn]=move.pieceCaptured
             self.whiteToMove = not self.whiteToMove
-    '''Defining all moves'''
-    '''Pawn and Rook moves done'''
-    '''Bishop moves now'''
+    
+    
+    '''Checks for Checks and pins and returns them'''
+    def PinCheckChecker(self):
+        pins = []
+        checks = []
+        inCheck = False
+        if self.whiteToMove:
+            startRow ,startColumn = self.whiteKing
+            curColor = "w"
+            oppColor = "b"
+        else :
+            startRow ,startColumn = self.blackKing
+            curColor = "b"
+            oppColor = "w"
+        dirs = ((-1,0),(0,-1),(1,0),(0,1),(-1,-1),(1,-1),(-1,1),(1,1))
+            
+        for i in range(8):
+            possiblePin =()
+            for j in range(1,8):
+                endRow = startRow + j*dirs[i][0]
+                endColumn = startColumn + j*dirs[i][1]
+                if 0<=endRow<=7 and 0<=endColumn<=7:
+                    endPiece = self.board[endRow][endColumn]
+                    if endPiece[0]==curColor:
+                        if len(possiblePin)==0:
+                            possiblePin = (endRow,endColumn,dirs[i][0],dirs[i][1])
+                        else :
+                            break
+                    elif endPiece[0]==oppColor:
+                        peice= endPiece[1]
+                        if (0<=i<=3 and peice=='R') or (4<=i<=7 and peice=='B') or (i==1 and peice=='p') and ((6<=i<=7 and oppColor=='w') or (4<=i<=5 and oppColor=='b')) or peice == 'Q' or (i==1 and peice=='K'):
+                            if(len(possiblePin)==0):
+                                inCheck= True
+                                checks.append((endRow,endColumn,dirs[i][0],dirs[i][1]))
+                            else :
+                                pins.append(possiblePin)
+                                break
+                        else :
+                            break
+                else :
+                    break
+        knightDirs = ((-2,-1),(-2,1),(-1,-2),(-1,2),(1,-2),(1,2),(2,-1),(2,1))
+        for i in range(8):
+            endRow = startRow + knightDirs[i][0]
+            endColumn = startColumn + knightDirs[i][1]
+            if 0<=endRow<=7 and 0<=endColumn<=7:
+                endPiece = self.board[endRow][endColumn]
+                if endPiece[0]==oppColor and endPiece[1]=='N':
+                    inCheck = True
+                    checks.append((endRow,endColumn,knightDirs[i][0],knightDirs[i][1]))
+            
+        return inCheck,pins,checks
     def getValidRookMoves(self,row,column,moves):
         dx = (0,0,-1,1)
         dy = (-1,1,0,0)
@@ -71,8 +133,17 @@ class GameState():
                         break
                 else:
                     break
-    def getValidKnightMoves(self):
-        pass
+    def getValidKnightMoves(self,row,column,moves):
+        dx = (-2,-2,2,2,-1,1,-1,1)
+        dy = (-1,1,-1,1,2,2,-2,-2)
+        for d in range(8):
+            nextRow = row + dx[d]
+            nextColumn = column + dy[d]
+            if 0<=nextRow<=7 and 0<=nextColumn<=7:
+                if self.board[nextRow][nextColumn]=="xx":
+                    moves.append(Move((row,column),(nextRow,nextColumn),self.board))
+                elif self.board[nextRow][nextColumn][0]!=self.board[row][column][0]:
+                    moves.append(Move((row,column),(nextRow,nextColumn),self.board))             
     def getValidBishopMoves(self,row,column,moves):
         dx = (-1,-1,1,1)
         dy = (-1,1,1,-1)
@@ -94,8 +165,17 @@ class GameState():
         self.getValidBishopMoves(row,column,moves)
         self.getValidRookMoves(row,column,moves)
 
-    def getValidKingMoves(self):
-        pass
+    def getValidKingMoves(self,row,column,moves):
+        dx = (-1,-1,0,1,1,1,0,-1)
+        dy = (-1,0,-1,0,-1,1,1,1)
+        for d in range(8):
+            nextRow = row + dx[d]
+            nextColumn = column + dy[d]
+            if 0<=nextRow<=7 and 0<=nextColumn<=7:
+                if self.board[nextRow][nextColumn]=="xx":
+                    moves.append(Move((row,column),(nextRow,nextColumn),self.board))
+                elif self.board[nextRow][nextColumn][0]!=self.board[row][column][0]:
+                    moves.append(Move((row,column),(nextRow,nextColumn),self.board))
     '''Doesnt have special moves'''
     def getValidPawnMoves(self,row,column,moves):
         if self.whiteToMove:
@@ -132,19 +212,49 @@ class GameState():
                     if curPeice[1]=="R":
                         self.getValidRookMoves(row,column,moves)
                     elif curPeice[1]=="N":
-                        self.getValidKnightMoves()
+                        self.getValidKnightMoves(row,column,moves)
                     elif curPeice[1]=="B":
                         self.getValidBishopMoves(row,column,moves)
                     elif curPeice[1]=="Q":
                         self.getValidQueenMoves(row,column,moves)
                     elif curPeice[1]=="K":
-                        self.getValidKingMoves()
+                        self.getValidKingMoves(row,column,moves)
                     elif curPeice[1]=="p":
                         self.getValidPawnMoves(row,column,moves) 
         return moves                    
     
-    
-
+    def ValidMoveFinder(self):
+        moves = []
+        self.inCheck ,self.pins,self.checks = self.PinCheckChecker()
+        if self.whiteToMove:
+            kingPos = self.whiteKing
+        else :
+            kingPos = self.blackKing
+        if self.inCheck:
+            if len(self.checks)==1:
+                moves = self.getAllPossibleMoves()
+                checkRow = self.checks[0][0]
+                checkColumn = self.check[0][1]
+                CheckingPeice = self.board[checkRow][checkColumn]
+                validSquares = []
+                if CheckingPeice == 'N':
+                    validSquares = [(checkRow,checkColumn)]
+                else :
+                    for i in range(1,8):
+                        validSquare = (kingPos[0] + i*self.checks[0][2],kingPos[1] + i*self.checks[0][3])
+                        validSquares.append(validSquare)
+                        if(validSquare[0]==checkRow and validSquare[1]==checkColumn):
+                            break  
+                
+                for i in range(len(moves),-1,-1,-1):
+                    if moves[i].pieceMoved[1]!='K':
+                        if not (moves[i].endRow,moves[i].endColumn) in validSquares:
+                            moves.remove(moves[i])
+            else:
+                self.getValidKingMoves(kingPos[0],kingPos[1],moves)
+        else:
+            moves = self.getAllPossibleMoves()
+        return moves
 class Move():
     rankToRow= {"1":7 ,"2":6 ,"3":5 ,"4":4 ,"5":3 ,"6":2,"7":1,"8":0}
     fileToColumn={"a":0,"b":1,"c":2,"d":3,"e":4,"f":5,"g":6,"h":7}
